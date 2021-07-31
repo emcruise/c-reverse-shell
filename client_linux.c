@@ -3,6 +3,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #define HOST "127.0.0.1"
 #define PORT 8843
@@ -10,24 +11,30 @@
 
 char* execute(char* command) {
     char* output_string = malloc(BUFFERSIZE);
-    int length_counter = 0;
+    
+    if(strncmp(command, "cd ", 3) == 0 && strlen(command) >= 4) {
+        if(chdir(command + 3) == 0) strcpy(output_string, "Change directory successfull");
+        else strcpy(output_string, "Change directory not successfull");
+    } else { 
+        int length_counter = 0;
 
-    FILE *fptr;
-    fptr = popen(command, "r");
+        FILE *fptr;
+        fptr = popen(command, "r");
 
-    /*if(fptr == NULL) {
-        strcpy(output_string, "Command unknown\n");
-        return output_string;
-    }*/
+        /*if(fptr == NULL) {
+            strcpy(output_string, "Command unknown\n");
+            return output_string;
+        }*/
 
-    char output_buffer[BUFFERSIZE];
-    while((fgets(output_buffer, sizeof(output_buffer), fptr)) != NULL) {
-        strcpy(output_string + length_counter, output_buffer);
-        length_counter += strlen(output_buffer);
+        char output_buffer[BUFFERSIZE];
+        while((fgets(output_buffer, sizeof(output_buffer), fptr)) != NULL) {
+            strcpy(output_string + length_counter, output_buffer);
+            length_counter += strlen(output_buffer);
+        }
+
+        pclose(fptr);
+        fptr = NULL;
     }
-
-    pclose(fptr);
-    fptr = NULL;
     return output_string;
 }
 
