@@ -33,7 +33,7 @@ class Listener():
                 cmd = cmd + '\x00'
                 self.__conn.send(cmd.encode('utf-8'))
                 resp = self.__conn.recv(2048).decode('utf-8')
-                print(respo)
+                print(resp)
             except KeyboardInterrupt:
                 print()
                 self.__conn.close()
