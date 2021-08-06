@@ -12,11 +12,7 @@ Use for educational purposes only.
 
 Compile the client:
 ```bash
-gcc client_linux.c -o client
-```
-Compile the client optimized for a extra small binary:
-```bash
-gcc -Os -s -ffunction-sections -fdata-sections -Wl,--gc-sections -fno-unroll-loops -fno-ident client_linux.c -o client
+gcc -Wall -g client_linux.c -lm -o client
 ```
 
 ## Running the server
