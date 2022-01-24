@@ -69,7 +69,7 @@ char* execute(char* command) {
             free(response);
 
             output_string = malloc(38 * sizeof(char));
-            strcpy(output_string, "Command invalid; if not got suck dick");
+            strcpy(output_string, "Command invalid");
             return output_string;
         }
 
